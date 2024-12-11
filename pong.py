@@ -4,7 +4,6 @@ import gym
 from gym import spaces
 import random
 
-
 class PongEnv(gym.Env):
     def __init__(self):
         super(PongEnv, self).__init__()
@@ -16,18 +15,17 @@ class PongEnv(gym.Env):
         self.PADDLE_HEIGHT = 100
         self.BALL_SIZE = 20
         self.PADDLE_SPEED = 5
-        self.BALL_SPEED = 5  # Velocità palla in entrambe le direzioni
+        self.BALL_SPEED = 5
 
-        # Variabili per il punteggio
+        # Punteggio
         self.score_player1 = 0
         self.score_player2 = 0
 
-        # Definire lo spazio di osservazione e di azione
-        self.observation_space = spaces.Box(low=0, high=255, shape=(self.SCREEN_HEIGHT, self.SCREEN_WIDTH, 3),
-                                            dtype=np.uint8)
+        # Spazio osservazione e azione
+        self.observation_space = spaces.Box(low=0, high=255, shape=(self.SCREEN_HEIGHT, self.SCREEN_WIDTH, 3), dtype=np.uint8)
         self.action_space = spaces.Discrete(3)  # 0: Stay, 1: Up, 2: Down
 
-        # Inizializzazione di PyGame
+        # PyGame
         pygame.init()
         self.screen = pygame.display.set_mode((self.SCREEN_WIDTH, self.SCREEN_HEIGHT))
         pygame.display.set_caption("PongAI")
@@ -35,111 +33,111 @@ class PongEnv(gym.Env):
         self.clock = pygame.time.Clock()
         self.reset()
 
-    # Funzione per resettare l'ambiente
     def reset(self):
         self.player1_y = (self.SCREEN_HEIGHT - self.PADDLE_HEIGHT) // 2
         self.player2_y = (self.SCREEN_HEIGHT - self.PADDLE_HEIGHT) // 2
         self.ball_x = self.SCREEN_WIDTH // 2
         self.ball_y = self.SCREEN_HEIGHT // 2
 
-        # Direzioni casuali per la palla
         self.ball_dx = self.BALL_SPEED * random.choice([1, -1])
         self.ball_dy = self.BALL_SPEED * random.choice([1, -1])
 
-        # Non resettiamo i punteggi
+        # Flag per determinare se i paddle hanno toccato la palla
+        self.paddle1_touched = False
+        self.paddle2_touched = False
+
         self.done = False
         return self._get_obs()
 
     def step(self, action):
-        # Gestione degli eventi (input dell'utente)
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
 
-        # Controllo paddle sinistro (Player 1)
+        # Paddle Player 1
         if action == 1 and self.player1_y > 0:
             self.player1_y -= self.PADDLE_SPEED
         if action == 2 and self.player1_y < self.SCREEN_HEIGHT - self.PADDLE_HEIGHT:
             self.player1_y += self.PADDLE_SPEED
 
-        # Movimento della pallina
+        # Movimento palla
         self.ball_x += self.ball_dx
         self.ball_y += self.ball_dy
 
-        # Collisioni con la parte superiore e inferiore dello schermo
+        # Collisione con bordi superiore/inferiore
         if self.ball_y <= 0 or self.ball_y >= self.SCREEN_HEIGHT - self.BALL_SIZE:
-            self.ball_dy *= -1  # Inverti la direzione verticale
+            self.ball_dy *= -1
 
-        reward = 0  # Inizializziamo la ricompensa
+        reward_player1 = 0
+        reward_player2 = 0
 
-        # Collisioni con i paddle (aggiunta ricompensa per colpire la palla)
-        if (
-                self.ball_x <= self.PADDLE_WIDTH
-                and self.player1_y < self.ball_y < self.player1_y + self.PADDLE_HEIGHT
-        ):
-            self.ball_dx *= -1  # Inverti la direzione orizzontale
-            reward += 1  # Ricompensa positiva per colpire la palla
+        # Collisione paddle sinistro
+        if (self.ball_x <= self.PADDLE_WIDTH and
+            self.player1_y <= self.ball_y + self.BALL_SIZE and
+            self.player1_y + self.PADDLE_HEIGHT >= self.ball_y):
+            self.ball_x = self.PADDLE_WIDTH
+            self.ball_dx *= -1
+            self.paddle1_touched = True  # Flag: paddle 1 ha toccato la palla
 
-            # Bonus per un rimbalzo perfetto (se la palla colpisce il centro del paddle)
-            if self.player1_y + self.PADDLE_HEIGHT / 4 <= self.ball_y <= self.player1_y + 3 * self.PADDLE_HEIGHT / 4:
-                reward += 1  # Aggiungi ricompensa per un rimbalzo perfetto
+            # Adjust trajectory based on hit point
+            impact_point = (self.ball_y - self.player1_y) / self.PADDLE_HEIGHT
+            self.ball_dy = (impact_point - 0.5) * 2 * self.BALL_SPEED
+            reward_player1 += 2 if 0.4 <= impact_point <= 0.6 else 1
 
-        elif (
-                self.ball_x >= self.SCREEN_WIDTH - self.PADDLE_WIDTH - self.BALL_SIZE
-                and self.player2_y < self.ball_y < self.player2_y + self.PADDLE_HEIGHT
-        ):
-            self.ball_dx *= -1  # Inverti la direzione orizzontale
-            reward += 1  # Ricompensa positiva per colpire la palla
+        # Collisione paddle destro
+        if (self.ball_x >= self.SCREEN_WIDTH - self.PADDLE_WIDTH - self.BALL_SIZE and
+            self.player2_y <= self.ball_y + self.BALL_SIZE and
+            self.player2_y + self.PADDLE_HEIGHT >= self.ball_y):
+            self.ball_x = self.SCREEN_WIDTH - self.PADDLE_WIDTH - self.BALL_SIZE
+            self.ball_dx *= -1
+            self.paddle2_touched = True  # Flag: paddle 2 ha toccato la palla
 
-            # Bonus per un rimbalzo perfetto (se la palla colpisce il centro del paddle)
-            if self.player2_y + self.PADDLE_HEIGHT / 4 <= self.ball_y <= self.player2_y + 3 * self.PADDLE_HEIGHT / 4:
-                reward += 1  # Aggiungi ricompensa per un rimbalzo perfetto
+            # Adjust trajectory based on hit point
+            impact_point = (self.ball_y - self.player2_y) / self.PADDLE_HEIGHT
+            self.ball_dy = (impact_point - 0.5) * 2 * self.BALL_SPEED
+            reward_player2 += 2 if 0.4 <= impact_point <= 0.6 else 1
 
-        # Se la palla non è colpita, punizione per non colpire la palla
-        if self.ball_x < 0 or self.ball_x > self.SCREEN_WIDTH:
-            reward -= 1  # Punizione per non colpire la palla
-
-        # Se il paddle va fuori dallo schermo (punizione)
-        if self.player1_y < 0 or self.player1_y > self.SCREEN_HEIGHT - self.PADDLE_HEIGHT:
-            reward -= 2  # Punizione maggiore per aver sbagliato la posizione del paddle
-        if self.player2_y < 0 or self.player2_y > self.SCREEN_HEIGHT - self.PADDLE_HEIGHT:
-            reward -= 2  # Punizione maggiore per aver sbagliato la posizione del paddle
-
-        # Punteggio (se la pallina supera i limiti laterali)
-        if self.ball_x < 0:  # Player 1 ha segnato
-            self.score_player1 += 1
-            self.done = True
-        if self.ball_x > self.SCREEN_WIDTH:  # Player 2 ha segnato
+        # Penalità e Reward quando la palla supera i paddle
+        if self.ball_x < 0:  # Punto per Player 2
             self.score_player2 += 1
+            if self.paddle2_touched:  # Paddle 2 ha toccato, penalità per Player 1 e reward a Player 2
+                reward_player1 -= 5  # Penalità a Player 1
+                reward_player2 += 1  # Reward a Player 2
+            else:  # Paddle 2 non ha toccato, solo penalità a Player 1
+                reward_player1 -= 5
             self.done = True
 
-        return self._get_obs(), reward, self.done, {}
+        elif self.ball_x > self.SCREEN_WIDTH:  # Punto per Player 1
+            self.score_player1 += 1
+            if self.paddle1_touched:  # Paddle 1 ha toccato, penalità per Player 2 e reward a Player 1
+                reward_player1 += 1  # Reward a Player 1
+                reward_player2 -= 5  # Penalità a Player 2
+            else:  # Paddle 1 non ha toccato, solo penalità a Player 2
+                reward_player2 -= 5
+            self.done = True
 
-    #Funzione per renderizzare l'ambiente
+        return self._get_obs(), (reward_player1, reward_player2), self.done, {}
+
     def render(self, mode='human'):
-        self.screen.fill((0, 0, 0))  # Pulisce lo schermo
+        self.screen.fill((0, 0, 0))
         pygame.draw.rect(self.screen, (255, 255, 255),
-                         (0, self.player1_y, self.PADDLE_WIDTH, self.PADDLE_HEIGHT))  # Paddle sinistro
-        pygame.draw.rect(self.screen, (255, 255, 255), (
-        self.SCREEN_WIDTH - self.PADDLE_WIDTH, self.player2_y, self.PADDLE_WIDTH, self.PADDLE_HEIGHT))  # Paddle destro
+                         (0, self.player1_y, self.PADDLE_WIDTH, self.PADDLE_HEIGHT))
+        pygame.draw.rect(self.screen, (255, 255, 255),
+                         (self.SCREEN_WIDTH - self.PADDLE_WIDTH, self.player2_y, self.PADDLE_WIDTH, self.PADDLE_HEIGHT))
         pygame.draw.ellipse(self.screen, (255, 255, 255),
-                            (self.ball_x, self.ball_y, self.BALL_SIZE, self.BALL_SIZE))  # Pallina
+                            (self.ball_x, self.ball_y, self.BALL_SIZE, self.BALL_SIZE))
 
-        # Visualizza il punteggio
         font = pygame.font.SysFont("Arial", 30)
-        score_text = font.render(f"Player 1: {self.score_player1}   Player 2: {self.score_player2}", True,
-                                 (255, 255, 255))
+        score_text = font.render(f"Player 1: {self.score_player1}   Player 2: {self.score_player2}", True, (255, 255, 255))
         self.screen.blit(score_text, (self.SCREEN_WIDTH // 2 - score_text.get_width() // 2, 20))
 
         pygame.display.flip()
         self.clock.tick(2000)
 
-    # Funzione per ottenere l'osservazione
     def _get_obs(self):
         obs = pygame.surfarray.array3d(pygame.display.get_surface())
         return obs
 
-    # Funzione per chiudere l'ambiente
     def close(self):
         pygame.quit()
