@@ -1,10 +1,10 @@
-# Pong AI - Gioco di Pong con Q-Learning
+# Pong AI - Pong Game with Q-Learning
 
-Questo progetto implementa un gioco di **Pong** in cui due agenti si sfidano utilizzando **Q-Learning**, un algoritmo di Reinforcement Learning. 
-Ogni agente apprende a giocare autonomamente, cercando di colpire la pallina e segnare punti, migliorando la propria strategia nel tempo.
+This repository contains a **Pong** game where two agents compete against each other using **Q-Learning**, a Reinforcement Learning algorithm.  
+The agents learn autonomously, improving their gameplay strategies over time by aiming to hit the ball and score points.
 
-## Caratteristiche
-- **Gioco di Pong** con visualizzazione in tempo reale tramite `pygame`.
-- **Apprendimento tramite Q-Learning** per due agenti (Player 1 e Player 2) che si allenano nel gioco.
-- **Funzionalità di punteggio** visibile in tempo reale nella parte superiore dello schermo.
-- **Ricompense differenziate** per il comportamento dell'agente (collisioni, rimbalzi perfetti, errori, ecc.).
+## Features
+- 🕹️ **Pong game** with real-time visualization using `pygame`.
+- 🤖 **Q-Learning-based AI**: Two agents (Player 1 and Player 2) train themselves to play the game.
+- 📊 **Real-time score display**: The current score is displayed at the top of the screen during gameplay.
+- 🎯 **Custom reward system**: Rewards are provided for different agent behaviors, such as collisions, perfect bounces, and errors.
