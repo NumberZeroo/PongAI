@@ -21,6 +21,14 @@ class PongEnv(gym.Env):
         self.score_player1 = 0
         self.score_player2 = 0
 
+        #Numero di volte che la palla ha toccato i paddle
+        self.paddle1_touched_counter = 0
+        self.paddle2_touched_counter = 0
+
+        # Streak
+        self.current_streak = 0  # Streak corrente
+        self.max_streak = 0  # Streak massima durante un episodio
+
         # Spazio osservazione e azione
         self.observation_space = spaces.Box(low=0, high=255, shape=(self.SCREEN_HEIGHT, self.SCREEN_WIDTH, 3), dtype=np.uint8)
         self.action_space = spaces.Discrete(3)  # 0: Stay, 1: Up, 2: Down
@@ -79,6 +87,7 @@ class PongEnv(gym.Env):
             self.ball_x = self.PADDLE_WIDTH
             self.ball_dx *= -1
             self.paddle1_touched = True  # Flag: paddle 1 ha toccato la palla
+            self.paddle1_touched_counter += 1
 
             # Adjust trajectory based on hit point
             impact_point = (self.ball_y - self.player1_y) / self.PADDLE_HEIGHT
@@ -92,6 +101,7 @@ class PongEnv(gym.Env):
             self.ball_x = self.SCREEN_WIDTH - self.PADDLE_WIDTH - self.BALL_SIZE
             self.ball_dx *= -1
             self.paddle2_touched = True  # Flag: paddle 2 ha toccato la palla
+            self.paddle2_touched_counter += 1
 
             # Adjust trajectory based on hit point
             impact_point = (self.ball_y - self.player2_y) / self.PADDLE_HEIGHT
@@ -128,9 +138,16 @@ class PongEnv(gym.Env):
         pygame.draw.ellipse(self.screen, (255, 255, 255),
                             (self.ball_x, self.ball_y, self.BALL_SIZE, self.BALL_SIZE))
 
+
+        # Punteggio
         font = pygame.font.SysFont("Arial", 30)
         score_text = font.render(f"Player 1: {self.score_player1}   Player 2: {self.score_player2}", True, (255, 255, 255))
         self.screen.blit(score_text, (self.SCREEN_WIDTH // 2 - score_text.get_width() // 2, 20))
+
+        #Mostro il numero di volte che la palla ha toccato i paddle
+        font = pygame.font.SysFont("Arial", 30)
+        score_text = font.render(f"Paddle 1: {self.paddle1_touched_counter}   Paddle 2: {self.paddle2_touched_counter}", True, (255, 255, 255))
+        self.screen.blit(score_text, (self.SCREEN_WIDTH // 2 - score_text.get_width() // 2, 50))
 
         pygame.display.flip()
         self.clock.tick(2000)
