@@ -1,10 +1,9 @@
 import pygame
-import numpy as np
-import gym
-from gym import spaces
 import random
+import numpy as np
+from gym import Env, spaces
 
-class PongEnv(gym.Env):
+class PongEnv(Env):
     def __init__(self):
         super(PongEnv, self).__init__()
 
@@ -21,13 +20,12 @@ class PongEnv(gym.Env):
         self.score_player1 = 0
         self.score_player2 = 0
 
-        #Numero di volte che la palla ha toccato i paddle
-        self.paddle1_touched_counter = 0
-        self.paddle2_touched_counter = 0
+        # Numero di tocchi per il progresso della velocità
+        self.touches = 0
 
-        # Streak
-        self.current_streak = 0  # Streak corrente
-        self.max_streak = 0  # Streak massima durante un episodio
+        # Flag per verificare se i paddle hanno toccato la palla
+        self.paddle1_touched = False
+        self.paddle2_touched = False
 
         # Spazio osservazione e azione
         self.observation_space = spaces.Box(low=0, high=255, shape=(self.SCREEN_HEIGHT, self.SCREEN_WIDTH, 3), dtype=np.uint8)
@@ -47,13 +45,13 @@ class PongEnv(gym.Env):
         self.ball_x = self.SCREEN_WIDTH // 2
         self.ball_y = self.SCREEN_HEIGHT // 2
 
-        self.ball_dx = self.BALL_SPEED * random.choice([1, -1])
-        self.ball_dy = self.BALL_SPEED * random.choice([1, -1])
+        # Direzione casuale per la palla
+        self.ball_dx = random.choice([-1, 1]) * random.randint(3, 7)
+        self.ball_dy = random.choice([-1, 1]) * random.randint(2, 5)
 
-        # Flag per determinare se i paddle hanno toccato la palla
+        self.touches = 0
         self.paddle1_touched = False
         self.paddle2_touched = False
-
         self.done = False
         return self._get_obs()
 
@@ -80,50 +78,61 @@ class PongEnv(gym.Env):
         reward_player1 = 0
         reward_player2 = 0
 
+        # Rappresentazione paddle e palla con Rect di PyGame
+        paddle1_rect = pygame.Rect(0, self.player1_y, self.PADDLE_WIDTH, self.PADDLE_HEIGHT)
+        paddle2_rect = pygame.Rect(self.SCREEN_WIDTH - self.PADDLE_WIDTH, self.player2_y, self.PADDLE_WIDTH, self.PADDLE_HEIGHT)
+        ball_rect = pygame.Rect(self.ball_x, self.ball_y, self.BALL_SIZE, self.BALL_SIZE)
+
         # Collisione paddle sinistro
-        if (self.ball_x <= self.PADDLE_WIDTH and
-            self.player1_y <= self.ball_y + self.BALL_SIZE and
-            self.player1_y + self.PADDLE_HEIGHT >= self.ball_y):
-            self.ball_x = self.PADDLE_WIDTH
+        if ball_rect.colliderect(paddle1_rect):
             self.ball_dx *= -1
-            self.paddle1_touched = True  # Flag: paddle 1 ha toccato la palla
-            self.paddle1_touched_counter += 1
+            self.ball_x = self.PADDLE_WIDTH  # Evita sovrapposizioni
+            self.touches += 1
+            self.paddle1_touched = True
+
+            # Incremento velocità ogni 3 tocchi
+            if self.touches % 3 == 0:
+                self.ball_dx += 1 if self.ball_dx > 0 else -1
+                self.ball_dy += 1 if self.ball_dy > 0 else -1
 
             # Adjust trajectory based on hit point
             impact_point = (self.ball_y - self.player1_y) / self.PADDLE_HEIGHT
-            self.ball_dy = (impact_point - 0.5) * 2 * self.BALL_SPEED
-            reward_player1 += 2 if 0.4 <= impact_point <= 0.6 else 1
+            self.ball_dy = (impact_point - 0.5) * 2 * abs(self.ball_dx)
+            reward_player1 += 1
 
         # Collisione paddle destro
-        if (self.ball_x >= self.SCREEN_WIDTH - self.PADDLE_WIDTH - self.BALL_SIZE and
-            self.player2_y <= self.ball_y + self.BALL_SIZE and
-            self.player2_y + self.PADDLE_HEIGHT >= self.ball_y):
-            self.ball_x = self.SCREEN_WIDTH - self.PADDLE_WIDTH - self.BALL_SIZE
+        if ball_rect.colliderect(paddle2_rect):
             self.ball_dx *= -1
-            self.paddle2_touched = True  # Flag: paddle 2 ha toccato la palla
-            self.paddle2_touched_counter += 1
+            self.ball_x = self.SCREEN_WIDTH - self.PADDLE_WIDTH - self.BALL_SIZE  # Evita sovrapposizioni
+            self.touches += 1
+            self.paddle2_touched = True
+
+            # Incremento velocità ogni 3 tocchi
+            if self.touches % 3 == 0:
+                self.ball_dx += 1 if self.ball_dx > 0 else -1
+                self.ball_dy += 1 if self.ball_dy > 0 else -1
 
             # Adjust trajectory based on hit point
             impact_point = (self.ball_y - self.player2_y) / self.PADDLE_HEIGHT
-            self.ball_dy = (impact_point - 0.5) * 2 * self.BALL_SPEED
-            reward_player2 += 2 if 0.4 <= impact_point <= 0.6 else 1
+            self.ball_dy = (impact_point - 0.5) * 2 * abs(self.ball_dx)
+            reward_player2 += 1
 
         # Penalità e Reward quando la palla supera i paddle
         if self.ball_x < 0:  # Punto per Player 2
             self.score_player2 += 1
-            if self.paddle2_touched:  # Paddle 2 ha toccato, penalità per Player 1 e reward a Player 2
-                reward_player1 -= 5  # Penalità a Player 1
-                reward_player2 += 1  # Reward a Player 2
-            else:  # Paddle 2 non ha toccato, solo penalità a Player 1
+            if self.paddle2_touched:  # Paddle 2 ha toccato, penalità per Player 1
+                reward_player1 -= 5
+                reward_player2 += 1
+            else:  # Paddle 2 non ha toccato, solo penalità per Player 1
                 reward_player1 -= 5
             self.done = True
 
         elif self.ball_x > self.SCREEN_WIDTH:  # Punto per Player 1
             self.score_player1 += 1
-            if self.paddle1_touched:  # Paddle 1 ha toccato, penalità per Player 2 e reward a Player 1
-                reward_player1 += 1  # Reward a Player 1
-                reward_player2 -= 5  # Penalità a Player 2
-            else:  # Paddle 1 non ha toccato, solo penalità a Player 2
+            if self.paddle1_touched:  # Paddle 1 ha toccato, penalità per Player 2
+                reward_player2 -= 5
+                reward_player1 += 1
+            else:  # Paddle 1 non ha toccato, solo penalità per Player 2
                 reward_player2 -= 5
             self.done = True
 
@@ -138,16 +147,13 @@ class PongEnv(gym.Env):
         pygame.draw.ellipse(self.screen, (255, 255, 255),
                             (self.ball_x, self.ball_y, self.BALL_SIZE, self.BALL_SIZE))
 
-
-        # Punteggio
         font = pygame.font.SysFont("Arial", 30)
         score_text = font.render(f"Player 1: {self.score_player1}   Player 2: {self.score_player2}", True, (255, 255, 255))
         self.screen.blit(score_text, (self.SCREEN_WIDTH // 2 - score_text.get_width() // 2, 20))
 
-        #Mostro il numero di volte che la palla ha toccato i paddle
-        font = pygame.font.SysFont("Arial", 30)
-        score_text = font.render(f"Paddle 1: {self.paddle1_touched_counter}   Paddle 2: {self.paddle2_touched_counter}", True, (255, 255, 255))
-        self.screen.blit(score_text, (self.SCREEN_WIDTH // 2 - score_text.get_width() // 2, 50))
+        # Mostra il numero di tocchi
+        touches_text = font.render(f"Touches: {self.touches}", True, (255, 255, 255))
+        self.screen.blit(touches_text, (self.SCREEN_WIDTH // 2 - touches_text.get_width() // 2, 50))
 
         pygame.display.flip()
         self.clock.tick(2000)
