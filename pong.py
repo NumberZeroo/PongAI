@@ -129,13 +129,11 @@ class PongEnv(Env):
         self.screen.blit(touches_text, (self.SCREEN_WIDTH // 2 - touches_text.get_width() // 2, 50))
 
         pygame.display.flip()
-        self.clock.tick(60)  # Limite di FPS a 60
+        self.clock.tick(120)  # Limite di FPS a 60
 
     def _get_obs(self):
-        """
-        Restituisce l'osservazione corrente dello stato dell'ambiente.
-        """
-        return (self.player1_y, self.ball_x, self.ball_y, self.ball_dx, self.ball_dy)
+        # Ora ritorniamo anche player2_y
+        return (self.player1_y, self.player2_y, self.ball_x, self.ball_y, self.ball_dx, self.ball_dy)
 
     def _handle_events(self):
         """
