@@ -10,7 +10,6 @@ class PongEnv(Env):
     Ambiente Pong personalizzato che estende gym.Env.
     Utilizza Pygame per la simulazione grafica del gioco.
     """
-
     def __init__(self, render_mode=True):
         super(PongEnv, self).__init__()
 
@@ -106,17 +105,22 @@ class PongEnv(Env):
         if not self.render_mode:
             return
 
-        self.screen.fill((0, 0, 0))  # Colore di sfondo nero
+        self.screen.fill((30, 30, 30))  # Colore di sfondo nero
 
         # Disegna i paddle
-        pygame.draw.rect(self.screen, (255, 255, 255),
+        pygame.draw.rect(self.screen, (255, 0, 0),
                          (0, self.player1_y, self.PADDLE_WIDTH, self.PADDLE_HEIGHT))
-        pygame.draw.rect(self.screen, (255, 255, 255),
+        pygame.draw.rect(self.screen, (0, 200, 255),
                          (self.SCREEN_WIDTH - self.PADDLE_WIDTH, self.player2_y, self.PADDLE_WIDTH, self.PADDLE_HEIGHT))
 
         # Disegna la palla
-        pygame.draw.ellipse(self.screen, (255, 255, 255),
+        pygame.draw.ellipse(self.screen, (160, 32, 240),
                             (self.ball_x, self.ball_y, self.BALL_SIZE, self.BALL_SIZE))
+
+        # Disegna la linea centrale della metà campo
+        for y in range(0, self.SCREEN_HEIGHT, 40):
+            pygame.draw.line(self.screen, (100, 100, 100), (self.SCREEN_WIDTH // 2, y),
+                             (self.SCREEN_WIDTH // 2, y + 20), 2)
 
         # Mostra il punteggio
         font = pygame.font.SysFont("Arial", 30)
