@@ -3,19 +3,23 @@ import random
 import os
 import matplotlib.pyplot as plt
 from datetime import datetime
+
 from pong import PongEnv
 
 # Configurazione del Q-Learning
-ALPHA = 0.1
+ALPHA = 0.9
+ALPHA_DECAY = 0.999
+ALPHA_MIN = 0.1
+
 GAMMA = 0.99
 
 EPSILON_DECAY = 0.999
 EPSILON_MIN = 0.05
 
-EPISODES = 10000
+EPISODES = 100000
 DISCRETE_BINS = 10
 
-TRAINING = True  # True per addestrare l'agente, False per testare l'agente
+TRAINING = False  # True per addestrare l'agente, False per testare l'agente
 
 if TRAINING:
     print("[INFO] Addestramento in corso...")
@@ -154,12 +158,18 @@ try: # Gestione interruzione con CTRL+C durante l'addestramento o il test
         if EPSILON > EPSILON_MIN:
             EPSILON *= EPSILON_DECAY
 
-        if(episode + 1) % 500 == 0:
-            print(f"Episode {episode + 1}/{EPISODES}, Total Reward Player 1: {total_reward1}, Player 2: {total_reward2}")
-            rewards_player1_total.append(total_reward1)
-            rewards_player2_total.append(total_reward2)
+        if ALPHA > ALPHA_MIN:
+            ALPHA *= ALPHA_DECAY
 
-        if (episode + 1) % 100 == 0:
+        rewards_player1_total.append(total_reward1)
+        rewards_player2_total.append(total_reward2)
+
+        if(episode + 1) % 500 == 0:
+            sum_r1 = sum(rewards_player1_total[-500:])
+            sum_r2 = sum(rewards_player2_total[-500:])
+            print(f"Episode {episode + 1}/{EPISODES}, Total Reward Player 1: {sum_r1}, Player 2: {sum_r2}")
+
+        if (episode + 1) % 200 == 0:
             np.save("q_table_player1.npy", q_table_player1)
             np.save("q_table_player2.npy", q_table_player2)
             print(f"[INFO] Q-Table salvata al termine dell'episodio {episode + 1}.")
@@ -190,10 +200,12 @@ if TRAINING:
     plt.ylabel('Ricompensa Media')
     plt.title('Andamento dei Reward Medi nel Tempo')
     plt.legend()
-    plt.show()
 
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     plt.savefig(f"grafici/andamento_reward_{timestamp}.png")
+
+
+    plt.show()
     print("-----------------------------------------------")
 else:
     print("[INFO] Test completato.")

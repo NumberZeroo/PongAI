@@ -52,6 +52,20 @@ class PongEnv(Env):
             pygame.display.set_caption("PongAI")
             self.clock = pygame.time.Clock()
 
+            # Carica il suono per la collisione
+            self.collision_sound = pygame.mixer.Sound("envSound/paddleTouch.wav")
+
+            # Carica il suono per il punto
+            self.point_sound = pygame.mixer.Sound("envSound/pointScored.wav")
+
+            #Carica la ost di sottofondo
+            pygame.mixer.music.load("envSound/PongAI_ost.wav")
+
+            #Riproduci la musica in loop
+            pygame.mixer.music.play(-1)
+
+
+
         self.reset()
 
     def reset(self):
@@ -201,6 +215,8 @@ class PongEnv(Env):
             self.ball_x = self.PADDLE_WIDTH  # Evita sovrapposizioni
             self.touches += 1
             self.paddle1_touched = True
+            if self.render_mode:
+                self.collision_sound.play()
 
             # Incremento velocità ogni 3 tocchi
             if self.touches % 3 == 0:
@@ -220,6 +236,8 @@ class PongEnv(Env):
             self.ball_x = self.SCREEN_WIDTH - self.PADDLE_WIDTH - self.BALL_SIZE  # Evita sovrapposizioni
             self.touches += 1
             self.paddle2_touched = True
+            if self.render_mode:
+                self.collision_sound.play()
 
             # Incremento velocità ogni 3 tocchi
             if self.touches % 3 == 0:
@@ -235,8 +253,11 @@ class PongEnv(Env):
 
         # Penalità e Reward quando la palla supera i paddle
         if self.ball_x < 0:  # Punto per Player 2
-            self.score_player2 += 1
+            if self.render_mode:
+                self.point_sound.play()
+
             if self.paddle2_touched:  # Paddle 2 ha toccato, penalità per Player 1
+                self.score_player2 += 1
                 reward_player1 -= 5
                 reward_player2 += 1
             else:  # Paddle 2 non ha toccato, solo penalità per Player 1
@@ -244,8 +265,11 @@ class PongEnv(Env):
             self.done = True
 
         elif self.ball_x > self.SCREEN_WIDTH:  # Punto per Player 1
-            self.score_player1 += 1
+            if self.render_mode:
+                self.point_sound.play()
+
             if self.paddle1_touched:  # Paddle 1 ha toccato, penalità per Player 2
+                self.score_player1 += 1
                 reward_player2 -= 5
                 reward_player1 += 1
             else:  # Paddle 1 non ha toccato, solo penalità per Player 2
