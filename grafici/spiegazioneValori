@@ -1,0 +1,9 @@
+Il nome del file dei grafici rappresenta:
+
+- xk = numero di episodi (episodes)
+- _x (alpha)
+- (xx) = decay dell'alpha se presente
+- _y (gamma)
+
+Esempio: 60k_0.9(0.999)_0.99
+Significa che il file contiene il grafico di 60k episodi, alpha = 0.9, alpha decay = 0.999, gamma = 0.99
