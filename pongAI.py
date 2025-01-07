@@ -7,9 +7,9 @@ from datetime import datetime
 from pong import PongEnv
 
 # Configurazione del Q-Learning
-ALPHA = 0.9
+ALPHA = 0.1
 ALPHA_DECAY = 0.999
-ALPHA_MIN = 0.1
+ALPHA_MIN = 0.01
 
 GAMMA = 0.99
 
@@ -19,7 +19,7 @@ EPSILON_MIN = 0.05
 EPISODES = 100000
 DISCRETE_BINS = 10
 
-TRAINING = False  # True per addestrare l'agente, False per testare l'agente
+TRAINING = True  # True per addestrare l'agente, False per testare l'agente
 
 if TRAINING:
     print("[INFO] Addestramento in corso...")
