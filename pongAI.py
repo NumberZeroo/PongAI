@@ -2,16 +2,21 @@ import numpy as np
 import random
 import os
 import matplotlib.pyplot as plt
-from datetime import datetime
 
+from grafici_utils import *
 from pong import PongEnv
 
 # Configurazione del Q-Learning
-ALPHA = 0.1
+ALPHA = 0.32
 ALPHA_DECAY = 0.999
 ALPHA_MIN = 0.01
 
-GAMMA = 0.99
+GAMMA = 0.95
+
+#Dati per salvataggio table
+al = ALPHA
+ad = ALPHA_DECAY
+g = GAMMA
 
 EPSILON_DECAY = 0.999
 EPSILON_MIN = 0.05
@@ -90,11 +95,18 @@ def process_observation_player2(obs):
     new_ball_y = ball_y
     new_ball_dy = ball_dy
 
-    # Ora restituiamo 6 valori, mantenendo la struttura (player1_y, player2_y, ball_x, ball_y, ball_dx, ball_dy)
+    #Restituiamo 6 valori, mantenendo la struttura (player1_y, player2_y, ball_x, ball_y, ball_dx, ball_dy)
     return (new_player1_y, new_player2_y, new_ball_x, new_ball_y, new_ball_dx, new_ball_dy)
 
 rewards_player1_total = []
 rewards_player2_total = []
+
+touches_total = []
+
+epsilon_history = []
+
+wins_p1 = 0
+wins_p2 = 0
 
 try: # Gestione interruzione con CTRL+C durante l'addestramento o il test
     for episode in range(EPISODES):
@@ -155,6 +167,9 @@ try: # Gestione interruzione con CTRL+C durante l'addestramento o il test
 
             env.render()
 
+        # Salvataggio dei numeri dei tocchi totali
+        touches_total.append(env.touches)
+
         if EPSILON > EPSILON_MIN:
             EPSILON *= EPSILON_DECAY
 
@@ -164,15 +179,17 @@ try: # Gestione interruzione con CTRL+C durante l'addestramento o il test
         rewards_player1_total.append(total_reward1)
         rewards_player2_total.append(total_reward2)
 
-        if(episode + 1) % 500 == 0:
+        epsilon_history.append(EPSILON)
+
+        if total_reward1 > total_reward2:
+            wins_p1 += 1
+        elif total_reward2 > total_reward1:
+            wins_p2 += 1
+
+        if (episode + 1) % 500 == 0:
             sum_r1 = sum(rewards_player1_total[-500:])
             sum_r2 = sum(rewards_player2_total[-500:])
-            print(f"Episode {episode + 1}/{EPISODES}, Total Reward Player 1: {sum_r1}, Player 2: {sum_r2}")
-
-        if (episode + 1) % 200 == 0:
-            np.save("q_table_player1.npy", q_table_player1)
-            np.save("q_table_player2.npy", q_table_player2)
-            print(f"[INFO] Q-Table salvata al termine dell'episodio {episode + 1}.")
+            print(f"Episodio {episode + 1}/{EPISODES}, Total Reward Player 1: {sum_r1}, Player 2: {sum_r2}")
 
 except KeyboardInterrupt:
     print("-----------------------------------------------")
@@ -182,30 +199,26 @@ finally:
     env.close()
 
 if TRAINING:
-    np.save("q_table_player1.npy", q_table_player1)
-    np.save("q_table_player2.npy", q_table_player2)
-    print("[INFO] Q-Table salvata al termine dell'addestramento.")
+    # Salvataggio finale delle Q-Tables con nome dinamico
+    q_table_filename_p1 = f"p1_{EPISODES // 1000}k_alpha{al:.3f}({ad:.3f})_gamma{g:.3f}.npy"
+    q_table_filename_p2 = f"p2_{EPISODES // 1000}k_alpha{al:.3f}({ad:.3f})_gamma{g:.3f}.npy"
 
-    def moving_average(data, window_size):
-        return [np.mean(data[i:i+window_size]) for i in range(len(data)-window_size+1)]
+    np.save(f"qtable/p1/{q_table_filename_p1}", q_table_player1)
+    np.save(f"qTable/p2/{q_table_filename_p2}", q_table_player2)
+    print(f"[INFO] Q-Tables salvate al termine dell'addestramento come {q_table_filename_p1} e {q_table_filename_p2}")
 
-    avg_rewards_p1 = moving_average(rewards_player1_total, 100)
-    avg_rewards_p2 = moving_average(rewards_player2_total, 100)
+    # Grafico dell'andamento delle ricompense medie
+    avg_rewards(rewards_player1_total, rewards_player2_total, EPISODES, al, ad, g)
 
-    episodes_axis = range(1, len(avg_rewards_p1) + 1)
-    plt.figure(figsize=(10,5))
-    plt.plot(episodes_axis, avg_rewards_p1, label='Player 1 (media mobile)')
-    plt.plot(episodes_axis, avg_rewards_p2, label='Player 2 (media mobile)')
-    plt.xlabel('Blocchi di 100 episodi')
-    plt.ylabel('Ricompensa Media')
-    plt.title('Andamento dei Reward Medi nel Tempo')
-    plt.legend()
+    # Grafico della percentuale di vittorie
+    win_percentage(wins_p1, wins_p2, EPISODES, al, ad, g)
 
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    plt.savefig(f"grafici/andamento_reward_{timestamp}.png")
+    # Grafico dei tocchi totali
+    plot_touches(touches_total, EPISODES, al, ad, g)
 
+    # Grafico dell'andamento di epsilon
+    plot_epsilon_decay(epsilon_history, EPISODES, al, ad, g)
 
-    plt.show()
     print("-----------------------------------------------")
 else:
     print("[INFO] Test completato.")
