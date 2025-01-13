@@ -8,6 +8,17 @@ def moving_average(data, window_size):
 
 # Funzione per visualizzare l'andamento delle ricompense medie nel tempo
 def avg_rewards(rewards_player1_total, rewards_player2_total, EPISODES, al, ad, g):
+    """
+    Crea un grafico dell'andamento delle ricompense medie nel tempo.
+    :param rewards_player1_total: Ricompense totali del Player 1
+    :param rewards_player2_total: Ricompense totali del Player 2
+    :param EPISODES: Numero totale di episodi
+    :param al: valore di alpha
+    :param ad: valore di alpha decay
+    :param g: valore di gamma
+    :return: None
+    """
+
     avg_rewards_p1 = moving_average(rewards_player1_total, 500)
     avg_rewards_p2 = moving_average(rewards_player2_total, 500)
 
@@ -28,6 +39,17 @@ def avg_rewards(rewards_player1_total, rewards_player2_total, EPISODES, al, ad, 
 
 # Funzione per analizzare la percentuale di vittorie di un giocatore
 def win_percentage(wins_player1, wins_player2, EPISODES, al, ad, g):
+    """
+    Crea un grafico a torta per visualizzare la percentuale di vittorie tra i due giocatori.
+    :param wins_player1: Totale delle vittorie del Player 1
+    :param wins_player2: Totale delle vittorie del Player 2
+    :param EPISODES: Numero totale di episodi
+    :param al: Valore di alpha
+    :param ad: Valore di alpha decay
+    :param g: Valore di gamma
+    :return: None
+    """
+
     # Calcola la percentuale di vittorie
     total_episodes = wins_player1 + wins_player2
     win_percentage_p1 = (wins_player1 / total_episodes) * 100
@@ -71,8 +93,16 @@ def win_percentage(wins_player1, wins_player2, EPISODES, al, ad, g):
 
 def plot_touches(touches_total, EPISODES, al, ad, g, window_size=300):
     """
-    Traccia l'andamento del numero medio di scambi per episodio.
+    Crea un grafico dell'andamento degli scambi medi nel tempo.
+    :param touches_total: Numero totale di tocchi per episodio
+    :param EPISODES: Numero totale di episodi
+    :param al: Valore di alpha
+    :param ad: Valore di alpha decay
+    :param g: Valore di gamma
+    :param window_size: Dimensione della finestra per la media mobile
+    :return: None
     """
+
     avg_touches = moving_average(touches_total, window_size)  # Calcola la media mobile
     episodes_axis = range(1, len(avg_touches) + 1)
 
@@ -88,6 +118,16 @@ def plot_touches(touches_total, EPISODES, al, ad, g, window_size=300):
     plt.show()
 
 def plot_epsilon_decay(epsilon_history, EPISODES, al, ad, g):
+    """
+    Crea un grafico dell'andamento del decadimento di epsilon.
+    :param epsilon_history: Storico dei valori di epsilon
+    :param EPISODES: Numero totale di episodi
+    :param al: Valore di alpha
+    :param ad: Valore di alpha decay
+    :param g: Valore di gamma
+    :return: None
+    """
+
     plt.figure(figsize=(10, 5))
     plt.plot(range(1, len(epsilon_history) + 1), epsilon_history, label='Valore di Epsilon', color='red')
     plt.xlabel('Episodi')

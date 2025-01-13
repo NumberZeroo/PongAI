@@ -1,14 +1,13 @@
 import numpy as np
 import random
 import os
-import matplotlib.pyplot as plt
 
 from grafici_utils import *
 from pong import PongEnv
 
 # Configurazione del Q-Learning
-ALPHA = 0.32
-ALPHA_DECAY = 0.999
+ALPHA = 0.1
+ALPHA_DECAY = 0
 ALPHA_MIN = 0.01
 
 GAMMA = 0.95
@@ -25,6 +24,7 @@ EPISODES = 100000
 DISCRETE_BINS = 10
 
 TRAINING = True  # True per addestrare l'agente, False per testare l'agente
+ALPHA_DECAY_STATUS = False # True per abilitare il decay di alpha
 
 if TRAINING:
     print("[INFO] Addestramento in corso...")
@@ -49,6 +49,13 @@ bins = [
 ]
 
 def discretize_state(state, bins):
+    """
+    Funzione per discretizzare lo stato dell'ambiente.
+    :param state: Stato dell'ambiente
+    :param bins: Bins per la discretizzazione
+    :return: Stato discretizzato (tuple)
+    """
+
     player1_y, player2_y, ball_x, ball_y, ball_dx, ball_dy = state
     discrete_state = (
         np.digitize(player1_y, bins[0]) - 1,
@@ -80,10 +87,21 @@ else:
 print("-----------------------------------------------")
 
 def process_observation_player1(obs):
-    # Player 1 usa l’osservazione così com’è
+    """
+    Funzione per ottenere l'osservazione per il Player 1.
+    :param obs: Osservazione dell'ambiente
+    :return: Osservazione così com'è (per il Player 1)
+    """
+
     return obs
 
 def process_observation_player2(obs):
+    """
+    Funzione per ottenere l'osservazione per il Player 2.
+    :param obs: Osservazione dell'ambiente
+    :return: Osservazione ribaltata rispetto all'asse x (per il Player 2)
+    """
+
     player1_y, player2_y, ball_x, ball_y, ball_dx, ball_dy = obs
     # Ribaltiamo la prospettiva: consideriamo player2_y come se fosse player1_y (il suo paddle principale)
     # e player1_y come se fosse player2_y da questa prospettiva
@@ -96,8 +114,9 @@ def process_observation_player2(obs):
     new_ball_dy = ball_dy
 
     #Restituiamo 6 valori, mantenendo la struttura (player1_y, player2_y, ball_x, ball_y, ball_dx, ball_dy)
-    return (new_player1_y, new_player2_y, new_ball_x, new_ball_y, new_ball_dx, new_ball_dy)
+    return new_player1_y, new_player2_y, new_ball_x, new_ball_y, new_ball_dx, new_ball_dy
 
+# Inizializzazione delle variabili per i grafici
 rewards_player1_total = []
 rewards_player2_total = []
 
@@ -124,6 +143,7 @@ try: # Gestione interruzione con CTRL+C durante l'addestramento o il test
         total_reward1 = 0
         total_reward2 = 0
 
+        # Loop per un singolo episodio
         while not done:
             # Epsilon-greedy per Player 1
             if random.uniform(0, 1) < EPSILON:
@@ -162,30 +182,33 @@ try: # Gestione interruzione con CTRL+C durante l'addestramento o il test
                 new_q2 = current_q2 + ALPHA * (reward_player2 + GAMMA * max_future_q2 - current_q2)
                 q_table_player2[discrete_state2 + (action2,)] = new_q2
 
+            # Aggiornamento degli stati
             discrete_state1 = discrete_next_state1
             discrete_state2 = discrete_next_state2
 
             env.render()
 
-        # Salvataggio dei numeri dei tocchi totali
-        touches_total.append(env.touches)
-
         if EPSILON > EPSILON_MIN:
             EPSILON *= EPSILON_DECAY
 
-        if ALPHA > ALPHA_MIN:
-            ALPHA *= ALPHA_DECAY
+        if ALPHA_DECAY_STATUS:
+            if ALPHA > ALPHA_MIN:
+               ALPHA *= ALPHA_DECAY
 
+        # Salvataggio delle variabili per i grafici
         rewards_player1_total.append(total_reward1)
         rewards_player2_total.append(total_reward2)
 
         epsilon_history.append(EPSILON)
+
+        touches_total.append(env.touches)
 
         if total_reward1 > total_reward2:
             wins_p1 += 1
         elif total_reward2 > total_reward1:
             wins_p2 += 1
 
+        # Stampa dei risultati ogni 500 episodi durante l'addestramento
         if (episode + 1) % 500 == 0:
             sum_r1 = sum(rewards_player1_total[-500:])
             sum_r2 = sum(rewards_player2_total[-500:])
@@ -199,7 +222,7 @@ finally:
     env.close()
 
 if TRAINING:
-    # Salvataggio finale delle Q-Tables con nome dinamico
+    # Salvataggio finale delle Q-Tables
     q_table_filename_p1 = f"p1_{EPISODES // 1000}k_alpha{al:.3f}({ad:.3f})_gamma{g:.3f}.npy"
     q_table_filename_p2 = f"p2_{EPISODES // 1000}k_alpha{al:.3f}({ad:.3f})_gamma{g:.3f}.npy"
 
