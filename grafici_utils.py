@@ -33,7 +33,7 @@ def avg_rewards(rewards_player1_total, rewards_player2_total, EPISODES, al, ad, 
 
     # timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     # plt.savefig(f"grafici/andamento_reward_{timestamp}.png")
-    plt.savefig(f"grafici/avg_rewards/{EPISODES // 1000}k_alpha{al:.3f}({ad:.3f})_gamma{g:.3f}.png")
+    plt.savefig(f"grafici/avg_rewards/avgRew_{EPISODES // 1000}k_alpha{al:.3f}({ad:.3f})_gamma{g:.3f}.png")
 
     plt.show()
 
@@ -88,7 +88,7 @@ def win_percentage(wins_player1, wins_player2, EPISODES, al, ad, g):
     plt.tight_layout()
 
     # Salvataggio del grafico
-    plt.savefig(f"grafici/win_percentage/vittorie_{EPISODES // 1000}k_alpha{al:.3f}({ad:.3f})_gamma{g:.3f}.png")
+    plt.savefig(f"grafici/win_percentage/winPerc_{EPISODES // 1000}k_alpha{al:.3f}({ad:.3f})_gamma{g:.3f}.png")
     plt.show()
 
 def plot_touches(touches_total, EPISODES, al, ad, g, window_size=300):
@@ -114,7 +114,7 @@ def plot_touches(touches_total, EPISODES, al, ad, g, window_size=300):
     plt.legend()
 
     # Salva il grafico
-    plt.savefig(f"grafici/avg_touches/{EPISODES // 1000}k_alpha{al:.3f}({ad:.3f})_gamma{g:.3f}.png")
+    plt.savefig(f"grafici/avg_touches/avgTouch_{EPISODES // 1000}k_alpha{al:.3f}({ad:.3f})_gamma{g:.3f}.png")
     plt.show()
 
 def plot_epsilon_decay(epsilon_history, EPISODES, al, ad, g):
@@ -134,5 +134,5 @@ def plot_epsilon_decay(epsilon_history, EPISODES, al, ad, g):
     plt.ylabel('Epsilon')
     plt.title('Andamento del Decadimento di Epsilon')
     plt.legend()
-    plt.savefig(f"grafici/epsilon_decay/{EPISODES // 1000}k_alpha{al:.3f}({ad:.3f})_gamma{g:.3f}.png")
+    plt.savefig(f"grafici/epsilon_decay/epsDec_{EPISODES // 1000}k_alpha{al:.3f}({ad:.3f})_gamma{g:.3f}.png")
     plt.show()
