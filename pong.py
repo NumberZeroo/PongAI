@@ -64,7 +64,10 @@ class PongEnv(Env):
             #Riproduci la musica in loop
             pygame.mixer.music.play(-1)
 
-
+        else:
+            self.screen = None
+            self.clock = None
+            self.collision_sound = None
 
         self.reset()
 

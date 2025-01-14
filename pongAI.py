@@ -10,7 +10,7 @@ ALPHA = 0.1
 ALPHA_DECAY = 0
 ALPHA_MIN = 0.01
 
-GAMMA = 0.95
+GAMMA = 0.99
 
 #Dati per salvataggio table
 al = ALPHA
