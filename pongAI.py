@@ -17,7 +17,6 @@ al = ALPHA
 ad = ALPHA_DECAY
 g = GAMMA
 
-EPSILON_DECAY = 0.999
 EPSILON_MIN = 0.05
 
 EPISODES = 100000
@@ -126,6 +125,8 @@ epsilon_history = []
 
 wins_p1 = 0
 wins_p2 = 0
+
+EPSILON_DECAY = (EPSILON_MIN / EPSILON) ** (1 / EPISODES)
 
 try: # Gestione interruzione con CTRL+C durante l'addestramento o il test
     for episode in range(EPISODES):
