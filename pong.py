@@ -1,4 +1,3 @@
-# pong.py
 import pygame
 import random
 import numpy as np
@@ -150,7 +149,7 @@ class PongEnv(Env):
         self.screen.blit(touches_text, (self.SCREEN_WIDTH // 2 - touches_text.get_width() // 2, 50))
 
         pygame.display.flip()
-        self.clock.tick(120)  # Limite di FPS a 60
+        self.clock.tick(2000)  # Limite di FPS a 60
 
     def _get_obs(self):
         # Ora ritorniamo anche player2_y
