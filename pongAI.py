@@ -1,9 +1,11 @@
 import numpy as np
 import random
 import os
+import tqdm
 
 from grafici_utils import *
 from pong import PongEnv
+from tqdm import tqdm
 
 def modello(episodes, training, alpha, gamma, q_table_p1, q_table_p2, demo_status, decay):
     """
@@ -132,7 +134,10 @@ def modello(episodes, training, alpha, gamma, q_table_p1, q_table_p2, demo_statu
     wins_p2 = 0
 
     try: # Gestione interruzione con CTRL+C durante l'addestramento o il test
-        for episode in range(episodes):
+
+        # Loop per tutti gli episodi di addestramento o test (episodes)
+        bar = tqdm(range(episodes), desc="[INFO] Episodi in corso", unit="episodi")
+        for episode in bar:
             obs = env.reset()
     
             # Applichiamo le trasformazioni
@@ -207,12 +212,8 @@ def modello(episodes, training, alpha, gamma, q_table_p1, q_table_p2, demo_statu
                 wins_p1 += 1
             else:
                 wins_p2 += 1
-    
-            # Stampa dei risultati ogni 500 episodi durante l'addestramento
-            if (episode + 1) % 500 == 0:
-                sum_r1 = sum(rewards_player1_total[-500:])
-                sum_r2 = sum(rewards_player2_total[-500:])
-                print(f"Episodio {episode + 1}/{episodes}, Total Reward Player 1: {sum_r1}, Player 2: {sum_r2}")
+
+            bar.set_postfix({"Reward P1": sum(rewards_player1_total[-50:]), "Reward P2": sum(rewards_player2_total[-50:])})
     
     except KeyboardInterrupt:
         print("-----------------------------------------------")

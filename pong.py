@@ -20,7 +20,7 @@ class PongEnv(Env):
         self.BALL_SIZE = 25
         self.PADDLE_SPEED = 5
         self.BALL_SPEED = 7
-        self.MAX_BALL_SPEED = 15  # Limite massimo della velocità della palla
+        self.MAX_BALL_SPEED = 15
 
         # Punteggio
         self.score_player1 = 0
@@ -121,7 +121,7 @@ class PongEnv(Env):
         if not self.render_mode:
             return
 
-        self.screen.fill((30, 30, 30))  # Colore di sfondo nero
+        self.screen.fill((30, 30, 30))
 
         # Disegna i paddle
         pygame.draw.rect(self.screen, (255, 0, 0),
@@ -149,7 +149,7 @@ class PongEnv(Env):
         self.screen.blit(touches_text, (self.SCREEN_WIDTH // 2 - touches_text.get_width() // 2, 50))
 
         pygame.display.flip()
-        self.clock.tick(2000)  # Limite di FPS a 60
+        self.clock.tick(120)
 
     def _get_obs(self):
         # Ora ritorniamo anche player2_y
@@ -227,10 +227,14 @@ class PongEnv(Env):
                 self.ball_dy = np.clip(self.ball_dy + (1 if self.ball_dy > 0 else -1), -self.MAX_BALL_SPEED,
                                        self.MAX_BALL_SPEED)
 
-            # Adjust trajectory based on hit point
+            #Aggiusta la traiettoria basata sul punto di impatto
             impact_point = (self.ball_y - self.player1_y) / self.PADDLE_HEIGHT
             self.ball_dy = (impact_point - 0.5) * 2 * abs(self.ball_dx)
-            reward_player1 += 1
+
+            if impact_point < 0.15 or impact_point > 0.85:
+                reward_player1 += 2
+            else:
+                reward_player1 += 1
 
         # Collisione paddle destro
         if ball_rect.colliderect(paddle2_rect):
@@ -248,10 +252,14 @@ class PongEnv(Env):
                 self.ball_dy = np.clip(self.ball_dy + (1 if self.ball_dy > 0 else -1), -self.MAX_BALL_SPEED,
                                        self.MAX_BALL_SPEED)
 
-            # Adjust trajectory based on hit point
+            #Aggiusta la traiettoria basata sul punto di impatto
             impact_point = (self.ball_y - self.player2_y) / self.PADDLE_HEIGHT
             self.ball_dy = (impact_point - 0.5) * 2 * abs(self.ball_dx)
-            reward_player2 += 1
+
+            if impact_point < 0.15 or impact_point > 0.85:
+                reward_player2 += 2
+            else:
+                reward_player2 += 1
 
         # Penalità e Reward quando la palla supera i paddle
         if self.ball_x < 0:  # Punto per Player 2

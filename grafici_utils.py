@@ -48,8 +48,8 @@ def avg_rewards_testing(rewards_player1_total, rewards_player2_total, EPISODES, 
     :return: None
     """
 
-    avg_rewards_p1 = moving_average(rewards_player1_total, 1)
-    avg_rewards_p2 = moving_average(rewards_player2_total, 1)
+    avg_rewards_p1 = moving_average(rewards_player1_total, 250)
+    avg_rewards_p2 = moving_average(rewards_player2_total, 250)
 
     episodes_axis = range(1, len(avg_rewards_p1) + 1)
     plt.figure(figsize=(10, 5))
