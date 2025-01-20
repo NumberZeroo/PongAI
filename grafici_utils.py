@@ -7,7 +7,7 @@ def moving_average(data, window_size):
 
 
 # Funzione per visualizzare l'andamento delle ricompense medie nel tempo
-def avg_rewards(rewards_player1_total, rewards_player2_total, EPISODES, al, g):
+def avg_rewards(rewards_player1_total, rewards_player2_total, EPISODES, al, g, decay):
     """
     Crea un grafico dell'andamento delle ricompense medie nel tempo.
     :param rewards_player1_total: Ricompense totali del Player 1
@@ -17,7 +17,7 @@ def avg_rewards(rewards_player1_total, rewards_player2_total, EPISODES, al, g):
     :param g: valore di gamma
     :return: None
     """
-    winsize = 500
+    winsize = 200
     avg_rewards_p1 = moving_average(rewards_player1_total, winsize)
     avg_rewards_p2 = moving_average(rewards_player2_total, winsize)
 
@@ -32,12 +32,15 @@ def avg_rewards(rewards_player1_total, rewards_player2_total, EPISODES, al, g):
 
     # timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     # plt.savefig(f"grafici/andamento_reward_{timestamp}.png")
-    plt.savefig(f"grafici/avg_rewards/avgRew_{EPISODES // 1000}k_alpha{al:.3f}_gamma{g:.3f}.png")
+    if decay:
+        plt.savefig(f"grafici/Training/avg_rewards/avgRew_{EPISODES // 1000}k_alpha{al:.3f}_gamma{g:.3f}_decayEpisodico.png")
+    else:
+        plt.savefig(f"grafici/Training/avg_rewards/avgRew_{EPISODES // 1000}k_alpha{al:.3f}_gamma{g:.3f}.png")
 
     plt.show()
 
 # Funzione per visualizzare l'andamento delle ricompense medie nel tempo
-def avg_rewards_testing(rewards_player1_total, rewards_player2_total, EPISODES, al, g, winsize):
+def avg_rewards_testing(rewards_player1_total, rewards_player2_total, EPISODES, al, g, winsize, decay):
     """
     Crea un grafico dell'andamento delle ricompense medie nel tempo.
     :param rewards_player1_total: Ricompense totali del Player 1
@@ -62,12 +65,16 @@ def avg_rewards_testing(rewards_player1_total, rewards_player2_total, EPISODES, 
 
     # timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
     # plt.savefig(f"grafici/andamento_reward_{timestamp}.png")
-    plt.savefig(f"grafici/avg_rewards_testing/testing_{EPISODES}k_alpha{al:.3f}_gamma{g:.3f} ({winsize}).png")
+
+    if decay:
+        plt.savefig(f"grafici/Testing/avg_rewards_testing/testing_{EPISODES}k_alpha{al:.3f}_gamma{g:.3f}_decayEpisodico ({winsize}).png")
+    else:
+        plt.savefig(f"grafici/Testing/avg_rewards_testing/testing_{EPISODES}k_alpha{al:.3f}_gamma{g:.3f} ({winsize}).png")
 
     plt.show()
 
 # Funzione per analizzare la percentuale di vittorie di un giocatore
-def win_percentage(wins_player1, wins_player2, EPISODES, al, g, testing):
+def win_percentage(wins_player1, wins_player2, EPISODES, al, g, testing, decay):
     """
     Crea un grafico a torta per visualizzare la percentuale di vittorie tra i due giocatori.
     :param wins_player1: Totale delle vittorie del Player 1
@@ -117,13 +124,19 @@ def win_percentage(wins_player1, wins_player2, EPISODES, al, g, testing):
 
     # Salvataggio del grafico
     if testing:
-        plt.savefig(f"grafici/win_percentage/TESTING_winPerc_{EPISODES // 1000}k_alpha{al:.3f}_gamma{g:.3f}.png")
+        if decay:
+            plt.savefig(f"grafici/Testing/win_percentage/TESTING_winPerc_{EPISODES // 1000}k_alpha{al:.3f}_gamma{g:.3f}_decayEpisodico.png")
+        else:
+            plt.savefig(f"grafici/Testing/win_percentage/TESTING_winPerc_{EPISODES // 1000}k_alpha{al:.3f}_gamma{g:.3f}.png")
     else:
-        plt.savefig(f"grafici/win_percentage/TRAINING_winPerc_{EPISODES // 1000}k_alpha{al:.3f}_gamma{g:.3f}.png")
+        if decay:
+            plt.savefig(f"grafici/Training/win_percentage/TRAINING_winPerc_{EPISODES // 1000}k_alpha{al:.3f}_gamma{g:.3f}_decayEpisodico.png")
+        else:
+            plt.savefig(f"grafici/Training/win_percentage/TRAINING_winPerc_{EPISODES // 1000}k_alpha{al:.3f}_gamma{g:.3f}.png")
 
     plt.show()
 
-def plot_touches(touches_total, EPISODES, al, g, window_size=300):
+def plot_touches(touches_total, EPISODES, al, g, window_size, decay):
     """
     Crea un grafico dell'andamento degli scambi medi nel tempo.
     :param touches_total: Numero totale di tocchi per episodio
@@ -145,7 +158,10 @@ def plot_touches(touches_total, EPISODES, al, g, window_size=300):
     plt.legend()
 
     # Salva il grafico
-    plt.savefig(f"grafici/avg_touches/avgTouch_{EPISODES // 1000}k_alpha{al:.3f}_gamma{g:.3f}.png")
+    if decay:
+        plt.savefig(f"grafici/Training/avg_touches/avgTouch_{EPISODES // 1000}k_alpha{al:.3f}_gamma{g:.3f}_decayEpisodico.png")
+    else:
+        plt.savefig(f"grafici/Training/avg_touches/avgTouch_{EPISODES // 1000}k_alpha{al:.3f}_gamma{g:.3f}.png")
     plt.show()
 
 def plot_epsilon_decay(epsilon_history, EPISODES, al, g):

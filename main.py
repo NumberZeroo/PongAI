@@ -4,11 +4,18 @@ def main():
     """
     Funzione principale per l'addestramento e il testing dell'agente.
     """
-    print("[INFO] Inizio training...")
-    name1, name2 = modello(100000, True, 0.1, 0.95, "nulla", "nulla", False, True)
+
+    episodes_train = 100000
+    episodes_test = 10000
+    alpha = 0.1
+    gamma = 0.99
+    decay_ep = True
+
+    #print("[INFO] Inizio training...")
+    #name1, name2 = modello(episodes_train, True, alpha, gamma, "nulla", "nulla", False, decay_ep)
 
     print("[INFO] Training completato. Inizio testing...")
-    modello(9000, False, 0,0, name1, name2, False, False)
+    modello(episodes_test, False, alpha, gamma, "p1_100k_alpha0.100_gamma0.990_decayEpisodico.pkl", "p2_100k_alpha0.100_gamma0.990_decayEpisodico.pkl", False, decay_ep)
 
     #Demo
     #modello(10, False, 0,0, "", "", True, False)

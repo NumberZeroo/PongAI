@@ -256,6 +256,7 @@ class PongEnv(Env):
             impact_point = (self.ball_y - self.player2_y) / self.PADDLE_HEIGHT
             self.ball_dy = (impact_point - 0.5) * 2 * abs(self.ball_dx)
 
+            # Ricompensa basata sul punto di impatto (bonus per i punti estremi)
             if impact_point < 0.15 or impact_point > 0.85:
                 reward_player2 += 2
             else:

@@ -1,3 +1,4 @@
+import pickle
 import numpy as np
 import random
 import os
@@ -75,16 +76,18 @@ def modello(episodes, training, alpha, gamma, q_table_p1, q_table_p2, demo_statu
         return discrete_state
     
     state_space_size = tuple([discrete_bins] * 6)
-    
+
     if os.path.exists(f"qTable/p1/{q_table_p1}"):
-        q_table_player1 = np.load(f"qTable/p1/{q_table_p1}")
+        with open(f"qTable/p1/{q_table_p1}", "rb") as f:
+            q_table_player1 = pickle.load(f)
         print("[INFO] Q-Table Player 1 caricata.")
     else:
         q_table_player1 = np.random.uniform(low=-1, high=1, size=(state_space_size + (env.action_space.n,)))
         print("[INFO] Q-Table Player 1 inizializzata casualmente.")
-    
+
     if os.path.exists(f"qTable/p2/{q_table_p2}"):
-        q_table_player2 = np.load(f"qTable/p2/{q_table_p2}")
+        with open(f"qTable/p2/{q_table_p2}", "rb") as f:
+            q_table_player2 = pickle.load(f)
         print("[INFO] Q-Table Player 2 caricata.")
     else:
         q_table_player2 = np.random.uniform(low=-1, high=1, size=(state_space_size + (env.action_space.n,)))
@@ -134,7 +137,6 @@ def modello(episodes, training, alpha, gamma, q_table_p1, q_table_p2, demo_statu
     wins_p2 = 0
 
     try: # Gestione interruzione con CTRL+C durante l'addestramento o il test
-
         # Loop per tutti gli episodi di addestramento o test (episodes)
         bar = tqdm(range(episodes), desc="[INFO] Episodi in corso", unit="episodi")
         for episode in bar:
@@ -223,22 +225,33 @@ def modello(episodes, training, alpha, gamma, q_table_p1, q_table_p2, demo_statu
         env.close()
     
     if training:
-        # Salvataggio finale delle Q-Tables
-        q_table_filename_p1 = f"p1_{episodes // 1000}k_alpha{al:.3f}_gamma{g:.3f}.npy"
-        q_table_filename_p2 = f"p2_{episodes // 1000}k_alpha{al:.3f}_gamma{g:.3f}.npy"
-    
-        np.save(f"qtable/p1/{q_table_filename_p1}", q_table_player1)
-        np.save(f"qTable/p2/{q_table_filename_p2}", q_table_player2)
-        print(f"[INFO] Q-Tables salvate al termine dell'addestramento come {q_table_filename_p1} e {q_table_filename_p2}")
+        if decay:
+            q_table_filename_p1 = f"p1_{episodes // 1000}k_alpha{al:.3f}_gamma{g:.3f}_decayEpisodico.pkl"
+            q_table_filename_p2 = f"p2_{episodes // 1000}k_alpha{al:.3f}_gamma{g:.3f}_decayEpisodico.pkl"
+        else:
+            q_table_filename_p1 = f"p1_{episodes // 1000}k_alpha{al:.3f}_gamma{g:.3f}.pkl"
+            q_table_filename_p2 = f"p2_{episodes // 1000}k_alpha{al:.3f}_gamma{g:.3f}.pkl"
+
+        with open(f"qTable/p1/{q_table_filename_p1}", "wb") as f:
+            pickle.dump(q_table_player1, f)
+
+        with open(f"qTable/p2/{q_table_filename_p2}", "wb") as f:
+            pickle.dump(q_table_player2, f)
+
+        print(
+            f"[INFO] Q-Tables salvate al termine dell'addestramento come {q_table_filename_p1} e {q_table_filename_p2}")
+        #np.save(f"qtable/p1/{q_table_filename_p1}", q_table_player1)
+        #np.save(f"qTable/p2/{q_table_filename_p2}", q_table_player2)
+        #print(f"[INFO] Q-Tables salvate al termine dell'addestramento come {q_table_filename_p1} e {q_table_filename_p2}")
     
         # Grafico dell'andamento delle ricompense medie
-        avg_rewards(rewards_player1_total, rewards_player2_total, episodes, al, g)
+        avg_rewards(rewards_player1_total, rewards_player2_total, episodes, al, g, decay)
 
         # Grafico della percentuale di vittorie
-        win_percentage(wins_p1, wins_p2, episodes, al, g, False)
+        win_percentage(wins_p1, wins_p2, episodes, al, g, False, decay)
     
         # Grafico dei tocchi totali
-        plot_touches(touches_total, episodes, al, g)
+        plot_touches(touches_total, episodes, al, g, 300, decay)
     
         # Grafico dell'andamento di epsilon
         #plot_epsilon_decay(epsilon_history, episodes, al, g)
@@ -247,8 +260,8 @@ def modello(episodes, training, alpha, gamma, q_table_p1, q_table_p2, demo_statu
         return q_table_filename_p1, q_table_filename_p2
     else:
         # Grafico dell'andamento delle ricompense medie (testing) e percentuale di vittorie (testing)
-        avg_rewards_testing(rewards_player1_total, rewards_player2_total, episodes, al, g, 200)
-        avg_rewards_testing(rewards_player1_total, rewards_player2_total, episodes, al, g, 100)
-        win_percentage(wins_p1, wins_p2, episodes, al, g, True)
+        avg_rewards_testing(rewards_player1_total, rewards_player2_total, episodes, al, g, 100, decay)
+        avg_rewards_testing(rewards_player1_total, rewards_player2_total, episodes, al, g, 200, decay)
+        win_percentage(wins_p1, wins_p2, episodes, al, g, True, decay)
         print("[INFO] Test completato.")
         print("-----------------------------------------------")
