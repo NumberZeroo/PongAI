@@ -235,18 +235,20 @@ def modello(episodes, training, alpha, gamma, q_table_p1, q_table_p2, demo_statu
         avg_rewards(rewards_player1_total, rewards_player2_total, episodes, al, g)
 
         # Grafico della percentuale di vittorie
-        win_percentage(wins_p1, wins_p2, episodes, al, g)
+        win_percentage(wins_p1, wins_p2, episodes, al, g, False)
     
         # Grafico dei tocchi totali
         plot_touches(touches_total, episodes, al, g)
     
         # Grafico dell'andamento di epsilon
-        plot_epsilon_decay(epsilon_history, episodes, al, g)
+        #plot_epsilon_decay(epsilon_history, episodes, al, g)
         print("-----------------------------------------------")
 
         return q_table_filename_p1, q_table_filename_p2
     else:
-        # Grafico dell'andamento delle ricompense medie (testing)
-        avg_rewards_testing(rewards_player1_total, rewards_player2_total, episodes, al, g)
+        # Grafico dell'andamento delle ricompense medie (testing) e percentuale di vittorie (testing)
+        avg_rewards_testing(rewards_player1_total, rewards_player2_total, episodes, al, g, 200)
+        avg_rewards_testing(rewards_player1_total, rewards_player2_total, episodes, al, g, 100)
+        win_percentage(wins_p1, wins_p2, episodes, al, g, True)
         print("[INFO] Test completato.")
         print("-----------------------------------------------")
