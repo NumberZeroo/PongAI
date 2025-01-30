@@ -11,11 +11,11 @@ def main():
     gamma = 0.99
     decay_ep = True
 
-    #print("[INFO] Inizio training...")
-    #name1, name2 = modello(episodes_train, True, alpha, gamma, "nulla", "nulla", False, decay_ep)
+    print("[INFO] Inizio training...")
+    name1, name2 = modello(episodes_train, True, alpha, gamma, "nulla", "nulla", False, decay_ep)
 
     print("[INFO] Training completato. Inizio testing...")
-    modello(episodes_test, False, alpha, gamma, "p1_100k_alpha0.100_gamma0.990_decayEpisodico.pkl", "p2_100k_alpha0.100_gamma0.990_decayEpisodico.pkl", False, decay_ep)
+    modello(episodes_test, False, alpha, gamma, name1, name2, False, decay_ep)
 
     #Demo
     #modello(10, False, 0,0, "", "", True, False)
