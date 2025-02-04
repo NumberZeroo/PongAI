@@ -5,8 +5,8 @@ def main():
     Funzione principale per l'addestramento e il testing dell'agente.
     """
 
-    episodes_train = 100000
-    episodes_test = 10000
+    episodes_train = 120000
+    episodes_test = 20000
     alpha = 0.1
     gamma = 0.99
     decay_ep = True
