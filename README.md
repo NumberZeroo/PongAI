@@ -35,5 +35,5 @@ python main.py
 Modify parameters in `main.py` to tweak training settings, game speed, and AI behavior.
 
 ## License
-This project is licensed under the MIT License.
+This project is licensed under the MIT [LICENCE](License).
 
